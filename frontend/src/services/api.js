@@ -1,7 +1,11 @@
-
 import axios from "axios";
+
 export const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL
+  baseURL: "https://multimodal-recommender-system-4.onrender.com",
 });
+
 export const getRecommendations = (userId) =>
-  api.post("/recommend", { user_id: Number(userId), top_k: 5 });
+  api.post("/recommend", {
+    user_id: Number(userId),
+    top_k: 5,
+  });
