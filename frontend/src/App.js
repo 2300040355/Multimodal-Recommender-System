@@ -1,69 +1,96 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { getRecommendations } from "./services/api";
+import { FaUser, FaStar } from "react-icons/fa";
 
 export default function App() {
   const [userId, setUserId] = useState("");
-  const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState([]);
-  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const fetchRecs = async () => {
+  const handleRecommend = async () => {
     setLoading(true);
-    setStatus("Waking up recommendation engine...");
+    setMessage("Fetching recommendations…");
+    setRecs([]);
+
     try {
       const data = await getRecommendations(userId);
+
+      // ✅ BACKEND IS CONFIRMED WORKING
       setRecs(data.recommendations);
-      setStatus("");
-    } catch {
-      setStatus("Service is waking up, please wait...");
+      setMessage("");
+    } catch (err) {
+      console.error(err);
+      setMessage("Unexpected error. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-10">
-      <h1 className="text-4xl font-bold mb-6">
+      {/* Header */}
+      <h1 className="text-4xl font-bold mb-2">
         Multimodal Recommendation Engine
       </h1>
+      <p className="text-gray-400 mb-8">
+        AI-powered personalization using embeddings & ranking
+      </p>
 
-      <div className="flex gap-4 mb-8">
-        <input
-          className="p-3 rounded bg-gray-800 border border-gray-700"
-          placeholder="Enter User ID"
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-        />
+      {/* Input */}
+      <div className="flex gap-4 items-center mb-10">
+        <div className="flex items-center bg-gray-800 px-4 py-2 rounded-lg border border-gray-600">
+          <FaUser className="text-gray-400 mr-2" />
+          <input
+            type="number"
+            className="bg-transparent outline-none text-white"
+            placeholder="User ID"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+          />
+        </div>
+
         <button
-          onClick={fetchRecs}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded"
+          onClick={handleRecommend}
+          className="bg-blue-600 px-6 py-2 rounded-lg hover:bg-blue-700 transition"
         >
           Recommend
         </button>
       </div>
 
-      {status && <p className="text-yellow-400 mb-4">{status}</p>}
-
+      {/* Status */}
       {loading && (
-        <div className="grid grid-cols-3 gap-6">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-800 animate-pulse rounded" />
-          ))}
-        </div>
+        <p className="text-yellow-400 mb-6 animate-pulse">
+          Fetching recommendations…
+        </p>
       )}
 
-      <div className="grid grid-cols-3 gap-6">
-        {recs.map((item, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ scale: 1.05 }}
-            className="p-6 bg-gray-800 rounded-xl shadow-lg"
+      {message && !loading && (
+        <p className="text-yellow-400 mb-6">{message}</p>
+      )}
+
+      {/* Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {recs.map((item, idx) => (
+          <div
+            key={idx}
+            className="bg-gray-800 p-6 rounded-xl shadow-lg hover:scale-105 transition duration-300"
           >
-            <h3 className="text-xl font-semibold">{item.title}</h3>
-            <p className="text-gray-400 mt-2">{item.description}</p>
-          </motion.div>
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-xl font-semibold">{item.title}</h2>
+              <span className="flex items-center text-yellow-400 text-sm">
+                <FaStar className="mr-1" /> AI Pick
+              </span>
+            </div>
+            <p className="text-gray-400">{item.description}</p>
+          </div>
         ))}
       </div>
+
+      {/* Footer */}
+      <p className="text-gray-500 text-sm mt-14">
+        Built with FastAPI • React • Tailwind • Deployed on Render
+      </p>
     </div>
   );
 }
